@@ -1,0 +1,54 @@
+name: PYTHON KIVY TO APK BUILDER WORKFLOW
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Cloning Repository To Runner
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+
+      - name: Installing dependence
+        run: |
+          sudo apt update -y
+          sudo apt upgrade -y
+          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev
+          pip3 install --user --upgrade buildozer
+          pip3 install --user --upgrade Cython==0.29.33 virtualenv
+          export PATH=$PATH:~/.local/bin/
+        shell: bash
+
+      - name: Install requirements from requirements.txt
+        run: |
+          if [ -f requirements.txt ]; then
+            python3 -m pip install -r requirements.txt
+          fi
+        shell: bash
+
+      - name: Build with Buildozer
+        run: |
+          buildozer -v android debug --non-interactive
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: |
+            bin/*.apk
