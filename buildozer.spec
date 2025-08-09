@@ -43,6 +43,10 @@ requirements = python3,kivy,certifi,pytubefix,android
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
 
+# (str) The Python version you want to use inside the APK
+# You MUST uncomment and set this to a modern version for a successful build
+p4a.python = 3.11
+
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
 
@@ -101,10 +105,10 @@ android.permissions = android.permission.INTERNET,android.permission.WRITE_EXTER
 #android.features = android.hardware.usb.host
 
 # (int) Target Android API, should be as high as possible.
-#android.api = 31
+android.api = 33
 
 # (int) Minimum API your APK / AAB will support.
-#android.minapi = 21
+android.minapi = 21
 
 # (int) Android SDK version to use
 #android.sdk = 20
