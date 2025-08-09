@@ -44,7 +44,6 @@ jobs:
       - name: Build with Buildozer
         run: |
           buildozer -v android debug --non-interactive
-          buildozer android clean
         shell: bash
 
       - name: Upload artifact
