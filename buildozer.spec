@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,certifi,pytubefix,android,aiohttp,aiohappyeyeballs,aiosignal,attrs,frozenlist,multidict,propcache,yarl,idna
+requirements = python3,kivy,certifi,pytubefix,android,aiohttp,aiohappyeyeballs,aiosignal,attrs,frozenlist,multidict,propcache,yarl,idna,async_timeout
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
