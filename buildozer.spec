@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,certifi,pytubefix,android,aiohttp,aiohappyeyeballs,aiosignal,attrs,frozenlist,multidict,propcache,yarl,idna,async-timeout,docutils,pygments,requests,filetype,urllib3,charset-normalizer==2.1.1
+requirements = python3,kivy
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -45,7 +45,7 @@ requirements = python3,kivy,certifi,pytubefix,android,aiohttp,aiohappyeyeballs,a
 
 # (str) The Python version you want to use inside the APK
 # You MUST uncomment and set this to a modern version for a successful build
-p4a.python = 3.11
+#p4a.python = 3.11
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
@@ -99,7 +99,7 @@ fullscreen = 0
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
-android.permissions = android.permission.INTERNET,android.permission.WRITE_EXTERNAL_STORAGE,android.permission.READ_EXTERNAL_STORAGE
+android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
