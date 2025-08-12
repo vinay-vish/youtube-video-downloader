@@ -1,5 +1,5 @@
 import os
-import shutil  # Import shutil for file operations
+import shutil
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -10,19 +10,39 @@ from kivy.clock import Clock
 from pytubefix import YouTube
 from threading import Thread
 
-# Android specific imports for permission and file management
-from android.permissions import request_permissions, Permission
-from android.storage import app_storage_path
-
 # Use pyjnius for Android API calls
 from jnius import autoclass
-from android.activity import get_activity
+# Get the Java Activity. The import 'from android.activity' is no longer needed.
+# We access the activity directly from the PythonActivity class provided by Kivy's bootstrap.
 
 # Define the necessary Java classes
-Environment = autoclass('android.os.Environment')
-Intent = autoclass('android.content.Intent')
-Uri = autoclass('android.net.Uri')
 PythonActivity = autoclass('org.kivy.android.PythonActivity')
+Environment = autoclass('android.os.Environment')
+ContentValues = autoclass('android.content.ContentValues')
+MimeTypeMap = autoclass('android.webkit.MimeTypeMap')
+MediaStore = autoclass('android.provider.MediaStore')
+
+def download_video(url, temp_path, callback):
+    """Download the YouTube video to a temporary location."""
+    try:
+        yt = YouTube(url)
+        video = yt.streams.get_highest_resolution()
+        
+        # Download to a temporary location within the app's internal storage
+        downloaded_file_path = video.download(output_path=temp_path)
+        
+        # Now, save the file to the public Downloads folder
+        success = save_file_to_downloads(downloaded_file_path)
+
+        if success:
+            # Clean up the temporary file
+            os.remove(downloaded_file_path)
+            callback("Download complete!", True)
+        else:
+            callback("Error: Could not save file to Downloads.", False)
+
+    except Exception as e:
+        callback(f"Error during download: {e}", False)
 
 def save_file_to_downloads(file_path):
     """
@@ -30,33 +50,24 @@ def save_file_to_downloads(file_path):
     This is the correct way to handle file saving on Android API 29+.
     """
     try:
-        # Get the context and content resolver
-        context = get_activity().getApplicationContext()
+        context = PythonActivity.mActivity
         resolver = context.getContentResolver()
-
-        # Get the file name
+        
         file_name = os.path.basename(file_path)
-
-        # Get the MIME type (e.g., 'video/mp4')
-        MimeTypeMap = autoclass('android.webkit.MimeTypeMap')
+        
         extension = file_name.split('.')[-1]
         mime_type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
 
-        # Create the ContentValues object with file details
-        ContentValues = autoclass('android.content.ContentValues')
         values = ContentValues()
-        values.put('_display_name', file_name)
-        values.put('mime_type', mime_type)
-        values.put('relative_path', Environment.DIRECTORY_DOWNLOADS)
+        values.put(MediaStore.Downloads.DISPLAY_NAME, file_name)
+        values.put(MediaStore.Downloads.MIME_TYPE, mime_type)
+        values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/YTDownloader")
 
         # Insert a new record into the MediaStore and get the URI
-        uri = resolver.insert(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toURI(),
-            values
-        )
+        uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
 
         if uri:
-            # Open an output stream to the URI
+            # Open an output stream to the URI and copy the data
             output_stream = resolver.openOutputStream(uri)
             with open(file_path, 'rb') as input_stream:
                 shutil.copyfileobj(input_stream, output_stream)
@@ -66,44 +77,19 @@ def save_file_to_downloads(file_path):
             return False
 
     except Exception as e:
-        # Log the error for debugging
-        print(f"Error saving file via ContentResolver: {e}")
+        # It's good practice to print the error to logcat for debugging
+        print(f"Error in save_file_to_downloads: {e}")
         return False
 
-
-def download_video(url, temp_path, callback):
-    """Download the YouTube video and call callback after completion."""
-    try:
-        yt = YouTube(url)
-        video = yt.streams.get_highest_resolution()
-        
-        # Download to a temporary location within the app's internal storage
-        # This is the directory we can always write to
-        downloaded_file = video.download(output_path=temp_path)
-        
-        # Now, use the Android API to save the file to the public Downloads folder
-        success = save_file_to_downloads(downloaded_file)
-
-        if success:
-            # Clean up the temporary file
-            os.remove(downloaded_file)
-            callback("Download complete!", True)
-        else:
-            callback("Error: Could not save file to Downloads.", False)
-
-    except Exception as e:
-        callback(f"Error: {e}", False)
-
-
+# ... (The rest of the Kivy app code remains the same)
 class DownloaderApp(App):
     def build(self):
         request_permissions(
             [Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE],
             self.on_permissions_result
         )
-
+        # ... (rest of the build method)
         self.has_permission = False
-
         layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         self.link_input = TextInput(hint_text='Enter YouTube video URL', multiline=False)
         self.download_button = Button(text='Download', disabled=True)
@@ -138,7 +124,6 @@ class DownloaderApp(App):
         self.download_button.disabled = True
         self.status_label.text = "Status: Downloading..."
 
-        # Temporary path within the app's internal storage
         temp_path = app_storage_path()
         os.makedirs(temp_path, exist_ok=True)
         
