@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,certifi,pytubefix,android,aiohttp,aiohappyeyeballs,aiosignal,attrs,frozenlist,multidict,propcache,yarl,idna,async-timeout,docutils,pygments,requests,filetype,urllib3,charset-normalizer==2.1.1,typing-extensions,shutil,pyjnius
+requirements = python3,kivy,certifi,pytubefix,android,aiohttp,aiohappyeyeballs,aiosignal,attrs,frozenlist,multidict,propcache,yarl,idna,async-timeout,docutils,pygments,requests,filetype,urllib3,charset-normalizer==2.1.1,typing-extensions,pyjnius
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -105,7 +105,7 @@ android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,INTERNET
 #android.features = android.hardware.usb.host
 
 # (int) Target Android API, should be as high as possible.
-android.api = 29
+android.api = 35
 
 # (int) Minimum API your APK / AAB will support.
 android.minapi = 21
