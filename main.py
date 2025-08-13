@@ -10,10 +10,12 @@ from kivy.clock import Clock
 from pytubefix import YouTube
 from threading import Thread
 
+# Android specific imports for permission and file management
+from android.permissions import request_permissions, Permission
+from android.storage import app_storage_path
+
 # Use pyjnius for Android API calls
 from jnius import autoclass
-# Get the Java Activity. The import 'from android.activity' is no longer needed.
-# We access the activity directly from the PythonActivity class provided by Kivy's bootstrap.
 
 # Define the necessary Java classes
 PythonActivity = autoclass('org.kivy.android.PythonActivity')
@@ -35,12 +37,10 @@ def download_video(url, temp_path, callback):
         success = save_file_to_downloads(downloaded_file_path)
 
         if success:
-            # Clean up the temporary file
             os.remove(downloaded_file_path)
             callback("Download complete!", True)
         else:
             callback("Error: Could not save file to Downloads.", False)
-
     except Exception as e:
         callback(f"Error during download: {e}", False)
 
@@ -54,7 +54,6 @@ def save_file_to_downloads(file_path):
         resolver = context.getContentResolver()
         
         file_name = os.path.basename(file_path)
-        
         extension = file_name.split('.')[-1]
         mime_type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
 
@@ -63,11 +62,9 @@ def save_file_to_downloads(file_path):
         values.put(MediaStore.Downloads.MIME_TYPE, mime_type)
         values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/YTDownloader")
 
-        # Insert a new record into the MediaStore and get the URI
         uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
 
         if uri:
-            # Open an output stream to the URI and copy the data
             output_stream = resolver.openOutputStream(uri)
             with open(file_path, 'rb') as input_stream:
                 shutil.copyfileobj(input_stream, output_stream)
@@ -77,29 +74,29 @@ def save_file_to_downloads(file_path):
             return False
 
     except Exception as e:
-        # It's good practice to print the error to logcat for debugging
         print(f"Error in save_file_to_downloads: {e}")
         return False
 
-# ... (The rest of the Kivy app code remains the same)
 class DownloaderApp(App):
     def build(self):
-        request_permissions(
-            [Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE],
-            self.on_permissions_result
-        )
-        # ... (rest of the build method)
         self.has_permission = False
         layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         self.link_input = TextInput(hint_text='Enter YouTube video URL', multiline=False)
         self.download_button = Button(text='Download', disabled=True)
-        self.status_label = Label(text='Status: Waiting for permissions')
+        self.status_label = Label(text='Status: Awaiting start')
         self.download_button.bind(on_press=self.start_download)
         
         layout.add_widget(self.link_input)
         layout.add_widget(self.download_button)
         layout.add_widget(self.status_label)
         return layout
+
+    def on_start(self):
+        self.status_label.text = "Status: Waiting for permissions"
+        request_permissions(
+            [Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE],
+            self.on_permissions_result
+        )
 
     def on_permissions_result(self, permissions, grants):
         if all(grants):
