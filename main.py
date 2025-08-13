@@ -1,5 +1,6 @@
 import os
 import shutil
+import ssl
 import certifi
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -25,17 +26,20 @@ ContentValues = autoclass('android.content.ContentValues')
 MimeTypeMap = autoclass('android.webkit.MimeTypeMap')
 MediaStore = autoclass('android.provider.MediaStore')
 
-# Set the REQUESTS_CA_BUNDLE environment variable at the beginning
-os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
-
 def download_video(url, temp_path, callback):
     """Download the YouTube video to a temporary location."""
     try:
-        yt = YouTube(url, use_oauth=False, allow_oauth_cache=True)
+        # Create a verified SSL context using the certifi certificate bundle
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+
+        # Pass the custom verified SSL context to pytubefix
+        yt = YouTube(url, use_oauth=False, allow_oauth_cache=True, ssl_context=ssl_context)
         video = yt.streams.get_highest_resolution()
         
+        # Download to a temporary location within the app's internal storage
         downloaded_file_path = video.download(output_path=temp_path)
         
+        # Now, save the file to the public Downloads folder
         success = save_file_to_downloads(downloaded_file_path)
 
         if success:
