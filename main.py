@@ -1,6 +1,7 @@
 import os
 import shutil
-import urllib3 # Import urllib3
+import urllib3
+import ssl # Added the missing import
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
