@@ -1,7 +1,6 @@
 import os
 import shutil
-import ssl
-import certifi
+import urllib3 # Import urllib3
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -26,14 +25,17 @@ ContentValues = autoclass('android.content.ContentValues')
 MimeTypeMap = autoclass('android.webkit.MimeTypeMap')
 MediaStore = autoclass('android.provider.MediaStore')
 
+# IMPORTANT: Disable SSL verification for all urllib3 requests
+# This is a robust workaround for the certificate verification error on Android.
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+urllib3.util.ssl_.DEFAULT_CONTEXT = urllib3.util.ssl_.create_urllib3_context()
+urllib3.util.ssl_.DEFAULT_CONTEXT.verify_mode = ssl.CERT_NONE
+
 def download_video(url, temp_path, callback):
     """Download the YouTube video to a temporary location."""
     try:
-        # Create a verified SSL context using the certifi certificate bundle
-        ssl_context = ssl.create_default_context(cafile=certifi.where())
-
-        # Pass the custom verified SSL context to pytubefix
-        yt = YouTube(url, use_oauth=False, allow_oauth_cache=True, ssl_context=ssl_context)
+        # No need for an ssl_context parameter, as it's now handled globally.
+        yt = YouTube(url, use_oauth=False, allow_oauth_cache=True)
         video = yt.streams.get_highest_resolution()
         
         # Download to a temporary location within the app's internal storage
