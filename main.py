@@ -1,5 +1,6 @@
 import os
 import shutil
+import ssl
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -27,7 +28,13 @@ MediaStore = autoclass('android.provider.MediaStore')
 def download_video(url, temp_path, callback):
     """Download the YouTube video to a temporary location."""
     try:
-        yt = YouTube(url)
+        # Create an unverified SSL context to bypass the certificate verification error
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+
+        # Pass the custom SSL context to pytubefix
+        yt = YouTube(url, use_oauth=False, allow_oauth_cache=True, ssl_context=ssl_context)
         video = yt.streams.get_highest_resolution()
         
         # Download to a temporary location within the app's internal storage
@@ -47,7 +54,6 @@ def download_video(url, temp_path, callback):
 def save_file_to_downloads(file_path):
     """
     Saves a file to the user's public Downloads directory using a Content Resolver.
-    This is the correct way to handle file saving on Android API 29+.
     """
     try:
         context = PythonActivity.mActivity
