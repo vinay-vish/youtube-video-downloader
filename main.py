@@ -1,5 +1,5 @@
 import os
-import ssl
+#import ssl
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -13,7 +13,7 @@ VIDEO_URL = "https://youtu.be/s01QuLpjISc?si=2PM0aLNdpiPgSWGu"
 
 # This line directly disables SSL certificate verification,
 # which is the most reliable way to fix the 'CERTIFICATE_VERIFY_FAILED' error.
-ssl._create_default_https_context = ssl._create_unverified_context
+#ssl._create_default_https_context = ssl._create_unverified_context
 
 class DownloaderApp(App):
     def build(self):
