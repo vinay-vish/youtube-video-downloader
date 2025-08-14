@@ -1,7 +1,7 @@
 import os
 import shutil
 import urllib3
-import ssl # Added the missing import
+import ssl
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -28,9 +28,13 @@ MediaStore = autoclass('android.provider.MediaStore')
 
 # IMPORTANT: Disable SSL verification for all urllib3 requests
 # This is a robust workaround for the certificate verification error on Android.
+# The order of operations here is critical to avoid the ValueError.
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-urllib3.util.ssl_.DEFAULT_CONTEXT = urllib3.util.ssl_.create_urllib3_context()
-urllib3.util.ssl_.DEFAULT_CONTEXT.verify_mode = ssl.CERT_NONE
+ssl_context = ssl.create_default_context()
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
+urllib3.util.ssl_.DEFAULT_CONTEXT = ssl_context
+
 
 def download_video(url, temp_path, callback):
     """Download the YouTube video to a temporary location."""
